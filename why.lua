@@ -1,22 +1,27 @@
 
+-- do you like french toast
 local why = {}
 
+-- setup allowed characters
 why.allowed = {}
 local allowed = why.allowed
 for c in ("#()[]{}char._G= "):gmatch'.' do
     allowed[c] = true
 end
 
+-- add constants
 why.charFunc = "([[]])[([[char]])]"
 local ZERO = "#_G"
 local ONE = "#{{}}"
 
+--- Express an integer using the length of a string with a certain number of characters.
 function why.smallint(n)
     if n == 0 or n == '0' then return ZERO end
     if n == 1 or n == '1' then return ONE end
     return "#[[" .. string.rep('.', n) .. "]]"
 end
 
+--- Express an integer by appending several integers together and then converting the resulting string to a number.
 function why.int(n)
     n = tostring(math.floor(n))
     if #n == 1 then return why.smallint(n) end
@@ -27,6 +32,7 @@ function why.int(n)
     return '(' .. ZERO .. "+(" .. table.concat(outstr, "..") .. "))"
 end
 
+--- Generate an evaluable representation of a string, allowing only the allowed characters.
 function why.toEvaluableString(str, level)
     level = string.rep('=', level or 1)
     local lb, rb = '[' .. level .. '[', ']' .. level .. ']'
@@ -51,10 +57,12 @@ function why.toEvaluableString(str, level)
     return '(' .. table.concat(members, ")..(") .. ')'
 end
 
+--- Generate a _G table access string (_G[<global name>]).
 function why.getGlobal(name, lvl)
     return "_G[" .. why.toEvaluableString(name, lvl) .. ']'
 end
 
+--- Generate a runnable program.
 function why.toProgram(code)
     return why.getGlobal("load") .. '(' .. why.toEvaluableString(code) .. ")()"
 end
